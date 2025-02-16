@@ -1,0 +1,17 @@
+{
+  "type": "code",
+  "modid": "autolootreforged",
+  "name": "AutoLootReforged",
+  "authors": [
+    "TheInsanityGod"
+  ],
+  "contributors": [
+    "Rangelost" //Author of the original mod
+  ],
+  "description": "Automatically loots corpses",
+  "side": "Client",
+  "version": "1.0.0",
+  "dependencies": {
+    "game": ""
+  }
+}
