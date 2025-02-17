@@ -1,5 +1,6 @@
 ﻿using AutoLootReforged.Code.Custom;
 using HarmonyLib;
+using System;
 using System.Linq;
 using System.Text;
 using Vintagestory.API.Common;
@@ -26,10 +27,12 @@ namespace AutoLootReforged.Code.HarmonyPatches
             IAttribute harvest = owningEntity.WatchedAttributes["harvestableInv"];
             if(harvest != null && !inventory.Empty)
             {
+                //Small delay so GUI can finish initializing properly
                 AutoLootReforgedModSystem.ClientAPI.World.RegisterCallback(_ => Loot(__instance, owningEntity, inventory), 10);
             }
             else if(!owningEntity.WatchedAttributes.OnModified.OfType<HarvetableListener>().Any())
             {
+                //In case the inventory hasn't received loot content yet from the server
                 owningEntity.WatchedAttributes.OnModified.Add(new HarvetableListener() { path = "harvestableInv", listener = () => AutoLootReforgedModSystem.ClientAPI.World.RegisterCallback(_ => Loot(__instance, owningEntity, inventory), 10)});
             }
         }
@@ -38,7 +41,7 @@ namespace AutoLootReforged.Code.HarmonyPatches
         {
             var player = AutoLootReforgedModSystem.ClientAPI.World.Player;
 
-            var strBuilder = AutoLootReforgedModSystem.Config.Log ? new StringBuilder("AutoLoot:") : null;
+            var strBuilder = AutoLootReforgedModSystem.Config.Log ? new StringBuilder($"Auto Looted: {Environment.NewLine}") : null;
 
             if (!inventory.Empty)
             {
@@ -46,7 +49,8 @@ namespace AutoLootReforged.Code.HarmonyPatches
                 {
                     var slot = inventory[i];
                     if (slot.Empty) continue;
-                    strBuilder?.AppendLine($"Looting slot {i}, containg {slot.Itemstack.StackSize} x {slot.Itemstack.GetName()}");
+                    
+                    var itemName = slot.Itemstack.GetName();
 
                     ItemStackMoveOperation operation = new(AutoLootReforgedModSystem.ClientAPI.World, EnumMouseButton.Left, EnumModifierKey.SHIFT, EnumMergePriority.AutoMerge, inventory[i].StackSize)
                     {
@@ -56,11 +60,8 @@ namespace AutoLootReforged.Code.HarmonyPatches
                     var packet = inventory.ActivateSlot(i, inventory[i], ref operation);
                     AutoLootReforgedModSystem.ClientAPI.Network.SendEntityPacket(owningEntity.EntityId, packet);
 
-                    if(operation.MovedQuantity > 0) strBuilder?.AppendLine($"Moved {operation.MovedQuantity} items");
-                    if (operation.NotMovedQuantity > 0)
-                    {
-                        strBuilder?.AppendLine($"Failed to move {operation.NotMovedQuantity} items");
-                    }
+                    if(operation.MovedQuantity > 0) strBuilder?.AppendLine($"Looted {operation.MovedQuantity} x {itemName}");
+                    if (operation.NotMovedQuantity > 0) strBuilder?.AppendLine($"Failed to loot {operation.NotMovedQuantity} x {itemName} (make sure you have enough space)");
                 }
 
                 if(AutoLootReforgedModSystem.Config.Sound) AutoLootReforgedModSystem.ClientAPI.World.PlaySoundFor("autolootreforged:sounds/loot", player, false);
@@ -74,7 +75,7 @@ namespace AutoLootReforged.Code.HarmonyPatches
                 AutoLootReforgedModSystem.ClientAPI.Event.EnqueueMainThreadTask(() => dialog.TryClose(), "closedlg");
             }
 
-            if (strBuilder != null) AutoLootReforgedModSystem.ClientAPI.Logger.Log(EnumLogType.Notification, strBuilder.ToString());
+            AutoLootReforgedModSystem.Log(strBuilder);
 
             var listener = owningEntity.WatchedAttributes.OnModified.OfType<HarvetableListener>().FirstOrDefault();
             if(listener != null) owningEntity.WatchedAttributes.OnModified.Remove(listener);

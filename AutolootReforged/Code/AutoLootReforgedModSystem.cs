@@ -1,6 +1,7 @@
 ﻿using AutoLootReforged.Config;
 using HarmonyLib;
 using System;
+using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
@@ -47,6 +48,16 @@ namespace AutoLootReforged.Code
             Config = null;
             ClientAPI = null;
             harmony?.UnpatchAll(Mod.Info.ModID);
+        }
+
+        public static void Log(StringBuilder stringBuilder)
+        {
+            if(stringBuilder == null) return;
+            var message = stringBuilder.ToString();
+
+            if (Config.LogToConsole) ClientAPI.Logger.Notification(message);
+
+            if (Config.LogToChat) ClientAPI.ShowChatMessage(message);
         }
     }
 }

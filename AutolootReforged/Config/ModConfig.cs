@@ -10,11 +10,23 @@ namespace AutoLootReforged.Config
     public class ModConfig
     {
         /// <summary>
-        /// Wether actions should be logged
+        /// Wether any logs are created (logger or chat)
+        /// </summary>
+        public bool Log => LogToConsole || LogToChat;
+
+        /// <summary>
+        /// Wether actions should be logged to the logger
         /// (unless you are debugging you shouldn't need this)
         /// </summary>
         [DefaultValue(false)]
-        public bool Log { get; set; } = false;
+        public bool LogToConsole { get; set; } = false;
+
+
+        /// <summary>
+        /// Wether actions should be logged to chat
+        /// </summary>
+        [DefaultValue(true)]
+        public bool LogToChat { get; set; } = true;
 
         /// <summary>
         /// Wether to play a sound when auto-looting
