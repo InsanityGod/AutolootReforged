@@ -79,5 +79,23 @@ namespace AutoLootReforged.Code.HarmonyPatches
             var listener = owningEntity.WatchedAttributes.OnModified.OfType<HarvetableListener>().FirstOrDefault();
             if(listener != null) owningEntity.WatchedAttributes.OnModified.Remove(listener);
         }
+
+        [HarmonyPatch(typeof(EntityBehaviorHarvestable), nameof(EntityBehaviorHarvestable.OnInteract))]
+        [HarmonyPostfix]
+        public static void PostFixDialog(EntityBehaviorHarvestable __instance)
+        {
+            var dlg = Traverse.Create(__instance).Field<GuiDialogCreatureContents>("dlg").Value;
+            if(dlg == null) return;
+            
+            AutoLootReforgedModSystem.ClientAPI.World.RegisterCallback(_ =>
+            {
+                //This is to fix an edge case where you open the inventory again right after the entity has been disposed but the client hasn't realized it yet
+                if(AutoLootReforgedModSystem.ClientAPI.World.GetNearestEntity(__instance.entity.Pos.XYZ, 1, 1, (e) => e.EntityId == __instance.entity.EntityId) == null)
+                {
+                    AutoLootReforgedModSystem.ClientAPI.Event.EnqueueMainThreadTask(() => dlg.TryClose(), "closedlg");
+                }
+            }, AutoLootReforgedModSystem.Config.CheckDubbleWindowOpenIntervalInMs);
+            
+        }
     }
 }

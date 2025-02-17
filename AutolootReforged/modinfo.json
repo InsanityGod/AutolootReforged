@@ -10,7 +10,7 @@
   ],
   "description": "Automatically loots corpses",
   "side": "Client",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "dependencies": {
     "game": ""
   }

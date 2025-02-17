@@ -21,5 +21,11 @@ namespace AutoLootReforged.Config
         /// </summary>
         [DefaultValue(true)]
         public bool Sound {get; set; } = true;
+
+        /// <summary>
+        /// How long to wait before checking if the window was somehow opened a second time after the entity was autolooted (in ms)
+        /// </summary>
+        [DefaultValue(250)]
+        public int CheckDubbleWindowOpenIntervalInMs { get; set; } = 250;
     }
 }
