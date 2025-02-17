@@ -53,7 +53,7 @@ namespace AutoLootReforged.Code
         public static void Log(StringBuilder stringBuilder)
         {
             if(stringBuilder == null) return;
-            var message = stringBuilder.ToString();
+            var message = stringBuilder.ToString().TrimEnd(Environment.NewLine.ToCharArray());
 
             if (Config.LogToConsole) ClientAPI.Logger.Notification(message);
 

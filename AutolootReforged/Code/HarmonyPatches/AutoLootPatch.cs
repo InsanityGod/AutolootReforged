@@ -41,7 +41,7 @@ namespace AutoLootReforged.Code.HarmonyPatches
         {
             var player = AutoLootReforgedModSystem.ClientAPI.World.Player;
 
-            var strBuilder = AutoLootReforgedModSystem.Config.Log ? new StringBuilder($"Auto Looted: {Environment.NewLine}") : null;
+            var strBuilder = AutoLootReforgedModSystem.Config.Log ? new StringBuilder() : null;
 
             if (!inventory.Empty)
             {
@@ -59,7 +59,8 @@ namespace AutoLootReforged.Code.HarmonyPatches
 
                     var packet = inventory.ActivateSlot(i, inventory[i], ref operation);
                     AutoLootReforgedModSystem.ClientAPI.Network.SendEntityPacket(owningEntity.EntityId, packet);
-
+                    
+                    //TODO maybe add language file support
                     if(operation.MovedQuantity > 0) strBuilder?.AppendLine($"Looted {operation.MovedQuantity} x {itemName}");
                     if (operation.NotMovedQuantity > 0) strBuilder?.AppendLine($"Failed to loot {operation.NotMovedQuantity} x {itemName} (make sure you have enough space)");
                 }
