@@ -70,6 +70,8 @@ namespace AutoLootReforged.Code.HarmonyPatches
             else
             {
                 strBuilder?.AppendLine("Inventory was empty");
+                if(AutoLootReforgedModSystem.Config.Sound) AutoLootReforgedModSystem.ClientAPI.World.PlaySoundFor("autolootreforged:sounds/loot", player, false);
+                AutoLootReforgedModSystem.ClientAPI.Event.EnqueueMainThreadTask(() => dialog.TryClose(), "closedlg");
             }
 
             if (strBuilder != null) AutoLootReforgedModSystem.ClientAPI.Logger.Log(EnumLogType.Notification, strBuilder.ToString());
