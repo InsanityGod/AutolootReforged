@@ -7,7 +7,7 @@ using Vintagestory.API.Datastructures;
 
 namespace AutoLootReforged.Code.Custom
 {
-    public class HarvetableListener : TreeModifiedListener
+    public class HarvestableListener : TreeModifiedListener
     {
     }
 }

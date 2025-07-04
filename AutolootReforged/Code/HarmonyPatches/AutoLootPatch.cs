@@ -1,11 +1,13 @@
 ﻿using AutoLootReforged.Code.Custom;
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
+using Vintagestory.Common;
 using Vintagestory.GameContent;
 
 namespace AutoLootReforged.Code.HarmonyPatches
@@ -30,10 +32,10 @@ namespace AutoLootReforged.Code.HarmonyPatches
                 //Small delay so GUI can finish initializing properly
                 AutoLootReforgedModSystem.ClientAPI.World.RegisterCallback(_ => Loot(__instance, owningEntity, inventory), 10);
             }
-            else if(!owningEntity.WatchedAttributes.OnModified.OfType<HarvetableListener>().Any())
+            else if(!owningEntity.WatchedAttributes.OnModified.OfType<HarvestableListener>().Any())
             {
                 //In case the inventory hasn't received loot content yet from the server
-                owningEntity.WatchedAttributes.OnModified.Add(new HarvetableListener() { path = "harvestableInv", listener = () => AutoLootReforgedModSystem.ClientAPI.World.RegisterCallback(_ => Loot(__instance, owningEntity, inventory), 10)});
+                owningEntity.WatchedAttributes.OnModified.Add(new HarvestableListener() { path = "harvestableInv", listener = () => AutoLootReforgedModSystem.ClientAPI.World.RegisterCallback(_ => Loot(__instance, owningEntity, inventory), 10)});
             }
         }
 
@@ -45,6 +47,8 @@ namespace AutoLootReforged.Code.HarmonyPatches
 
             if (!inventory.Empty)
             {
+                var key = AutoLootReforgedModSystem.ClientAPI.Input.GetHotKeyByCode("inventorydialog");
+                key.Handler(key.CurrentMapping);
                 for (var i = 0; i < inventory.Count; i++)
                 {
                     var slot = inventory[i];
@@ -56,18 +60,21 @@ namespace AutoLootReforged.Code.HarmonyPatches
                     {
                         ActingPlayer = player
                     };
-
+                    
                     var packet = inventory.ActivateSlot(i, inventory[i], ref operation);
                     AutoLootReforgedModSystem.ClientAPI.Network.SendEntityPacket(owningEntity.EntityId, packet);
                     
-                    //TODO maybe add language file support
-                    if(operation.MovedQuantity > 0) strBuilder?.AppendLine($"Looted {operation.MovedQuantity} x {itemName}");
+                    //TODO maybe add blacklist support
+                    //TODO maybe add xskills integration
+                    
+                    if (operation.MovedQuantity > 0) strBuilder?.AppendLine($"Looted {operation.MovedQuantity} x {itemName}");
                     if (operation.NotMovedQuantity > 0) strBuilder?.AppendLine($"Failed to loot {operation.NotMovedQuantity} x {itemName} (make sure you have enough space)");
                 }
 
                 if(AutoLootReforgedModSystem.Config.Sound) AutoLootReforgedModSystem.ClientAPI.World.PlaySoundFor("autolootreforged:sounds/loot", player, false);
 
                 if (inventory.Empty) AutoLootReforgedModSystem.ClientAPI.Event.EnqueueMainThreadTask(() => dialog.TryClose(), "closedlg");
+                key.Handler(key.CurrentMapping);
             }
             else
             {
@@ -78,7 +85,7 @@ namespace AutoLootReforged.Code.HarmonyPatches
 
             AutoLootReforgedModSystem.Log(strBuilder);
 
-            var listener = owningEntity.WatchedAttributes.OnModified.OfType<HarvetableListener>().FirstOrDefault();
+            var listener = owningEntity.WatchedAttributes.OnModified.OfType<HarvestableListener>().FirstOrDefault();
             if(listener != null) owningEntity.WatchedAttributes.OnModified.Remove(listener);
         }
 
@@ -97,7 +104,6 @@ namespace AutoLootReforged.Code.HarmonyPatches
                     AutoLootReforgedModSystem.ClientAPI.Event.EnqueueMainThreadTask(() => dlg.TryClose(), "closedlg");
                 }
             }, AutoLootReforgedModSystem.Config.CheckDubbleWindowOpenIntervalInMs);
-            
         }
     }
 }
